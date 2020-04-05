@@ -23,6 +23,9 @@ public:
 	int speed;
 	int level;
 	int ID;
+	int currentLocationInteger;
+	void SetCurrentLocationInteger(int set);
+	int GetCurrentLocationInteger();
 	FString nameQ;
 
 	void spawnStats(int levelz, int IDz);

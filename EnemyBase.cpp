@@ -29,3 +29,10 @@ void AEnemyBase::spawnStats(int levelz, int IDz)
 {
 
 }
+
+void AEnemyBase::SetCurrentLocationInteger(int set) {
+	currentLocationInteger = set;
+}
+int AEnemyBase::GetCurrentLocationInteger() {
+	return currentLocationInteger;
+}

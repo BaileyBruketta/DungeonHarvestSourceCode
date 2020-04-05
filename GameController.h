@@ -46,6 +46,9 @@ public:
 	int playerHealthCurrent;
 	int playerStomachMax;
 	int playerStomachCurrent;
+	int playerExperience;
+	int playerLevel;
+	TArray<int> levelCaps;
 
 	TArray<Item> spawnedItems;
 
@@ -89,6 +92,11 @@ public:
 	int CurPlaLocInt;
 
 	bool canMove(int mapLoc, int direction);
+
+	//TODO: call this after any player movement(not turning) and attacking
+	void DungeonTurn();
+	//this is used to make sure player doesnt move faster than the dungeon/game in terms of button pressing vs processing
+	bool moveCheck;
 
 
 

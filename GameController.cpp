@@ -55,8 +55,11 @@ void AGameController::BeginPlay()
 	enemyPresent.Init(false, 50);
 	isOccupied.Init(false, 625);
 	SetBorderVertices();
+	levelCaps.Init(0, 50);
 	//test
 	GenerateFloor();
+	moveCheck = true;
+	
 	
 }
 //Calculates values for the border of the dungeon map
@@ -152,17 +155,22 @@ void AGameController::Tick(float DeltaTime)
 //catches input from player 
 void AGameController::Turn(int inputx)
 {
+
 	int turn = inputx;
-	//up input received
-	if      (turn == 0) { Movement(0); }
-	//down input recieved
-	else if (turn == 1) { Movement(1); }
-	//left input recieved
-	else if (turn == 2) { Movement(2); }
-	//right input recieved
-	else if (turn == 3) { Movement(3); }
+	if (moveCheck == true) 
+	{
+		//up input received
+		if (turn == 0) { Movement(0); }
+		//down input recieved
+		else if (turn == 1) { Movement(1); }
+		//left input recieved
+		else if (turn == 2) { Movement(2); }
+		//right input recieved
+		else if (turn == 3) { Movement(3); }
+	}
 
 }
+
 //this is used by multiple functions, and is a way to check if the tile the player or enemy "wishes" to move to is Open for moving
 bool AGameController::canMove(int mapLoc, int direction)
 {
@@ -195,6 +203,9 @@ void AGameController::Movement(int mov)
 				GetWorld()->GetTimerManager().SetTimer(movementTimer, this, &AGameController::PlayerMoveNorth, .05f, false);
 				isOccupied[CurPlaLocInt] = false;
 				CurPlaLocInt += 25;
+				moveCheck = false;
+				DungeonTurn();
+				
 			}
 		}
 		else if (playerDirection != "north") 
@@ -212,6 +223,8 @@ void AGameController::Movement(int mov)
 				GetWorld()->GetTimerManager().SetTimer(movementTimer, this, &AGameController::PlayerMoveSouth, .05f, false);
 				isOccupied[CurPlaLocInt] = false;
 				CurPlaLocInt -= 25;
+				moveCheck = false;
+				DungeonTurn();
 			}
 		}
 		else if (playerDirection != "south")
@@ -229,6 +242,8 @@ void AGameController::Movement(int mov)
 				GetWorld()->GetTimerManager().SetTimer(movementTimer, this, &AGameController::PlayerMoveWest, .05f, false);
 				isOccupied[CurPlaLocInt] = false;
 				CurPlaLocInt -= 1;
+				moveCheck = false;
+				DungeonTurn();
 			}
 		}
 		else if (playerDirection != "west") 
@@ -246,6 +261,8 @@ void AGameController::Movement(int mov)
 				GetWorld()->GetTimerManager().SetTimer(movementTimer, this, &AGameController::PlayerMoveEast, .05f, false);
 				isOccupied[CurPlaLocInt] = false;
 				CurPlaLocInt += 1;
+				moveCheck = false;
+				DungeonTurn();
 			}
 		}
 		else if (playerDirection != "east")
@@ -507,9 +524,12 @@ void AGameController::SetEnemyStats(int dunj, int floor)
 		FRotator SpawnRot;
 		FVector SpawnPoint = enemyLoca[i];
 		AEnemyBase* newEnemy = GetWorld()->SpawnActor<AEnemyBase>(enemyClass, SpawnPoint, SpawnRot, SpawnParams);
+		newEnemy->SetCurrentLocationInteger(startPoint);
 		enemyList[i] = newEnemy;
 
 		enemyList[i]->spawnStats(enemyLev[i], enemyID[i]);
+		
+		
 		enemyPresent[i] = true;
 
 		
@@ -523,8 +543,9 @@ void AGameController::TeleportToDungeon()
 	int entrance = 0;
 	entrance = FMath::RandRange(0, 624);
 	while (isRoom[entrance] == false) {if (entrance < 624) { entrance += 1; }else { entrance -= 1; }}
-
-	while(isOccupied[entrance] ==true){ while (isRoom[entrance] == false) { if (entrance < 624) { entrance += 1; } else { entrance -= 1; } } }
+	
+	//The below code causes a very obvious while loop. extract some functionality to avoid player/enemy overlapping on spawn
+	//while(isOccupied[entrance] ==true){ while (isRoom[entrance] == false) { if (entrance < 624) { entrance += 1; } else { entrance -= 1; } } }
 
 	currentplayerLocation = dungeonTileVectors[entrance];
 	CurPlaLocInt = entrance;
@@ -534,5 +555,59 @@ void AGameController::TeleportToDungeon()
 
 
 
+}
+
+void AGameController::DungeonTurn()
+{
+	for (int i = 0; i < enemyList.Num(); i++) 
+	{
+		if (enemyPresent[i] == true) 
+		{
+			//int x = enemyList[i]->GetCurrentLocationInteger();
+			//start by calculating distance between this enemy and the player's location
+			//int difference = x - CurPlaLocInt;
+			//int unitsAbove = 0; int unitsBelow = 0; int EnemyIsunitsLeftOf = 0; int EnemyIsunitsRightOf;
+			//while (difference > 25) { unitsAbove += 1; difference -= 25; }
+			//while (difference < -25) { unitsBelow += 1; difference += 25; }
+			//if (difference > 0) { EnemyIsunitsRightOf = difference; }
+			//else if (difference < 0) { EnemyIsunitsLeftOf = difference * -1; }
+
+			
+			//Begin by moving the enemy up or down if appropriate space
+			//bool moved = false;
+
+			//if (unitsAbove > 0) { if (canMove(x, 1) == true) { MoveFunction(1, enemyList[i]); MoveFunction(1, enemyList[i]); int z = x; isOccupied[z] = false; int L = z - 25; enemyList[i]->SetCurrentLocationInteger(L); isOccupied[L] = true; } }
+			//else if (unitsBelow > 0) { if (canMove(x, 0) == true) { MoveFunction(0, enemyList[i]); MoveFunction(0, enemyList[i]); int z = x; isOccupied[z] = false; int L = z + 25;  enemyList[i]->SetCurrentLocationInteger(L); isOccupied[L] = true; } }
+
+			//reset relative location measurements
+			//x = enemyList[i]->GetCurrentLocationInteger();
+			//difference = x - CurPlaLocInt;
+			//while (difference > 25) { unitsAbove += 1; difference -= 25; }
+			//while (difference < -25) { unitsBelow += 1; difference += 25; }
+			//if (difference > 0) { EnemyIsunitsRightOf = difference; }
+			//else if (difference < 0) { EnemyIsunitsLeftOf = difference * -1; }
+
+			//move left or right
+			//if (EnemyIsunitsLeftOf > 0) { if (canMove(x, 3) == true) { MoveFunction(3, enemyList[i]); MoveFunction(3, enemyList[i]); int z = x; isOccupied[z] = false; int L = z + 1; enemyList[i]->SetCurrentLocationInteger(L); isOccupied[L] = true; } }
+			//else if (EnemyIsunitsRightOf > 0) { if (canMove(x, 2) == true) { MoveFunction(2, enemyList[i]); MoveFunction(2, enemyList[i]); int z = x; isOccupied[z] = false; int L = z - 1; enemyList[i]->SetCurrentLocationInteger(L); isOccupied[L] = true; } }
+			int enemySlot  = enemyList[i]->GetCurrentLocationInteger();
+			int enemySlot2 = enemySlot;
+			int playrSlot  = CurPlaLocInt;
+			int enemyRow   = 0;
+			int playerRow  = 0;
+			while (enemySlot > 25) { enemyRow += 1;  enemySlot -= 25;}
+			while (playrSlot > 25) { playerRow += 1; playrSlot -= 25;}
+
+			//enemy above player, attempt move down
+			if (enemyRow > playerRow) { if (canMove(enemySlot2, 1) == true) { MoveFunction(1, enemyList[i]); MoveFunction(1, enemyList[i]); int z = enemySlot2; isOccupied[z] = false; int L = z - 25; enemyList[i]->SetCurrentLocationInteger(L); isOccupied[L] = true; } }
+			//enemy below player, attempt move up 	
+			if (enemyRow < playerRow) { if (canMove(enemySlot2, 0) == true) { MoveFunction(0, enemyList[i]); MoveFunction(0, enemyList[i]); int z = enemySlot2; isOccupied[z] = false; int L = z + 25; enemyList[i]->SetCurrentLocationInteger(L); isOccupied[L] = true; } }
+			
+			
+		}
+	}
+	moveCheck = true;
+
+	
 }
 
