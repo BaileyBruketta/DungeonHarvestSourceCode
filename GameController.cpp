@@ -159,6 +159,7 @@ void AGameController::Turn(int inputx)
 	int turn = inputx;
 	if (moveCheck == true) 
 	{
+		
 		//up input received
 		if (turn == 0) { Movement(0); }
 		//down input recieved
@@ -167,6 +168,17 @@ void AGameController::Turn(int inputx)
 		else if (turn == 2) { Movement(2); }
 		//right input recieved
 		else if (turn == 3) { Movement(3); }
+
+		//NorthWest Movement Input Received
+		else if (turn == 4) { Movement(4); }
+		//NorthEast Movement Input Recieved
+		else if (turn == 5) { Movement(5); }
+		//SouthWest Movement Input Received
+		else if (turn == 6) { Movement(6); }
+		//SouthEast Movement Input Recieved
+		else if (turn == 7) { Movement(7); }
+		
+
 	}
 
 }
@@ -175,11 +187,15 @@ void AGameController::Turn(int inputx)
 bool AGameController::canMove(int mapLoc, int direction)
 {
 	int spaceToCheck;
-	//0 = north, 1 = south, 2 = west, 3 = east
+	//0 = north, 1 = south, 2 = west, 3 = east, 4 = north-west, 5 = north-east, 6 = south-west, 7 = south-east
 	if (direction == 0)	     {spaceToCheck = mapLoc + 25;	}
 	else if (direction == 1) {spaceToCheck = mapLoc - 25;	}
 	else if (direction == 2) {spaceToCheck = mapLoc - 1;	}
 	else if (direction == 3) {spaceToCheck = mapLoc + 1;	}
+	else if (direction == 4) {spaceToCheck = mapLoc + 24;   }
+	else if (direction == 5) {spaceToCheck = mapLoc + 26;   }
+	else if (direction == 6) {spaceToCheck = mapLoc - 24;   }
+	else if (direction == 7) {spaceToCheck = mapLoc - 26;   }
 
 	if (spaceToCheck < 625) 
 	{
@@ -192,130 +208,94 @@ bool AGameController::canMove(int mapLoc, int direction)
 //TODO: turn player proper direction
 void AGameController::Movement(int mov) 
 {
-	int moveArg = mov;
-	if (moveArg == 0)
+	int moveArg       = mov;
+	FString buttonDir = "";
+	int newLocInt     = 0;
+
+	switch (mov)
 	{
-		if (playerDirection == "north") 
-		{			
-			if (canMove(CurPlaLocInt, 0) == true) 
-			{
-				MoveFunction(0, player);
-				GetWorld()->GetTimerManager().SetTimer(movementTimer, this, &AGameController::PlayerMoveNorth, .05f, false);
-				isOccupied[CurPlaLocInt] = false;
-				CurPlaLocInt += 25;
-				moveCheck = false;
-				DungeonTurn();
-				
-			}
-		}
-		else if (playerDirection != "north") 
+	case 0:buttonDir = "north"    ; newLocInt =  25; break;
+	case 1:buttonDir = "south"    ; newLocInt = -25; break;
+	case 2:buttonDir = "west"     ; newLocInt = -1 ; break;
+	case 3:buttonDir = "east"     ; newLocInt =  1 ; break;
+	case 4:buttonDir = "northwest"; newLocInt =  24; break;
+	case 5:buttonDir = "northeast"; newLocInt =  26; break;
+	case 6:buttonDir = "southwest"; newLocInt = -24; break;
+	case 7:buttonDir = "southeast"; newLocInt = -26; break;
+	}
+
+	if (playerDirection == buttonDir)
+	{
+		if (canMove(CurPlaLocInt, moveArg) == true)
 		{
-			playerDirection = "north";
+			MoveFunction(moveArg, player);
+			switch (moveArg)
+			{
+			case 0:GetWorld()->GetTimerManager().SetTimer(movementTimer, this, &AGameController::PlayerMoveNorth, .05f, false)    ; break;
+			case 1:GetWorld()->GetTimerManager().SetTimer(movementTimer, this, &AGameController::PlayerMoveSouth, .05f, false)    ; break;
+			case 2:GetWorld()->GetTimerManager().SetTimer(movementTimer, this, &AGameController::PlayerMoveWest, .05f, false)     ; break;
+			case 3:GetWorld()->GetTimerManager().SetTimer(movementTimer, this, &AGameController::PlayerMoveEast, .05f, false)     ; break;
+			case 4:GetWorld()->GetTimerManager().SetTimer(movementTimer, this, &AGameController::PlayerMoveNorthWest, .05f, false); break;
+			case 5:GetWorld()->GetTimerManager().SetTimer(movementTimer, this, &AGameController::PlayerMoveNorthEast, .05f, false); break;
+			case 6:GetWorld()->GetTimerManager().SetTimer(movementTimer, this, &AGameController::PlayerMoveSouthWest, .05f, false); break;
+			case 7:GetWorld()->GetTimerManager().SetTimer(movementTimer, this, &AGameController::PlayerMoveSouthEast, .05f, false); break;
+			}
+			isOccupied[CurPlaLocInt] = false;
+			CurPlaLocInt += newLocInt;
+			moveCheck = false;
+			DungeonTurn();
 		}
 	}
-	else if (moveArg == 1)
-	{
-		if (playerDirection == "south")
-		{
-			if (canMove(CurPlaLocInt, 1) == true) 
-			{
-				MoveFunction(1, player);
-				GetWorld()->GetTimerManager().SetTimer(movementTimer, this, &AGameController::PlayerMoveSouth, .05f, false);
-				isOccupied[CurPlaLocInt] = false;
-				CurPlaLocInt -= 25;
-				moveCheck = false;
-				DungeonTurn();
-			}
-		}
-		else if (playerDirection != "south")
-		{
-			playerDirection = "south";
-		}
-	}
-	else if (moveArg == 2)
-	{
-		if (playerDirection == "west") 
-		{
-			if (canMove(CurPlaLocInt, 2) == true) 
-			{
-				MoveFunction(2, player);
-				GetWorld()->GetTimerManager().SetTimer(movementTimer, this, &AGameController::PlayerMoveWest, .05f, false);
-				isOccupied[CurPlaLocInt] = false;
-				CurPlaLocInt -= 1;
-				moveCheck = false;
-				DungeonTurn();
-			}
-		}
-		else if (playerDirection != "west") 
-		{
-			playerDirection = "west";
-		}
-	}
-	else if (moveArg == 3)
-	{
-		if (playerDirection == "east")
-		{
-			if (canMove(CurPlaLocInt, 3) == true) 
-			{
-				MoveFunction(3, player);
-				GetWorld()->GetTimerManager().SetTimer(movementTimer, this, &AGameController::PlayerMoveEast, .05f, false);
-				isOccupied[CurPlaLocInt] = false;
-				CurPlaLocInt += 1;
-				moveCheck = false;
-				DungeonTurn();
-			}
-		}
-		else if (playerDirection != "east")
-		{
-			playerDirection = "east";
-		}
-	}
+	playerDirection = buttonDir;
+
+	
 
 }
 //Used by movement timers to direct player movement. this accounts for the second "step", or is called 3 seconds after a first movement, so that the player has its movement divided into a 2 part sequence
-void AGameController::PlayerMoveNorth() { MoveFunction(0, player); }
-void AGameController::PlayerMoveSouth() { MoveFunction(1, player); }
-void AGameController::PlayerMoveWest() { MoveFunction(2, player); }
-void AGameController::PlayerMoveEast() { MoveFunction(3, player); }
+void AGameController::PlayerMoveNorth()    { MoveFunction(0, player); }
+void AGameController::PlayerMoveSouth()    { MoveFunction(1, player); }
+void AGameController::PlayerMoveWest()     { MoveFunction(2, player); }
+void AGameController::PlayerMoveEast()     { MoveFunction(3, player); }
+void AGameController::PlayerMoveNorthWest(){ MoveFunction(4, player); }
+void AGameController::PlayerMoveNorthEast(){ MoveFunction(5, player); }
+void AGameController::PlayerMoveSouthWest(){ MoveFunction(6, player); }
+void AGameController::PlayerMoveSouthEast(){ MoveFunction(7, player); }
 
 //catches direction and gamepiece for movement
 //TODO: turn actor direction they are moving
 //TODO: REmove duplicate code
 void AGameController::MoveFunction(int direction, AActor* gamepiece)
 {
-	//north
-	if (direction == 0) 
+	int newX = 0;
+	int newY = 0;
+	switch (direction)
 	{
+		//north
+		case 0:newX =  25;				break;
+		//south
+		case 1:newX = -25;				break;
+		//west
+		case 2:newY = -25;				break;
+		//east
+		case 3:newY =  25;				break;
+		//northwest
+		case 4:newX =  25;newY = -25;	break;
+		//northeast
+		case 5:newX =  25;newY =  25;	break;
+		//southwest
+		case 6:newX = -25;newY = -25;	break;
+		//southeast
+		case 7:newX = -25;newY =  25;	break;		
+	}
+	
+	
 		FVector loc    = gamepiece->GetActorLocation();
 		FVector newLoc = loc;
-		newLoc.X       = newLoc.X + 25;
+		newLoc.X       = newLoc.X + newX;
+		newLoc.Y       = newLoc.Y + newY;
 		gamepiece->SetActorLocation(newLoc);
 		
-	}
-	//south
-	if (direction == 1)
-	{
-		FVector loc    = gamepiece->GetActorLocation();
-		FVector newLoc = loc;
-		newLoc.X       = newLoc.X - 25;
-		gamepiece->SetActorLocation(newLoc);
-	}
-	//west
-	if (direction == 2)
-	{
-		FVector loc    = gamepiece->GetActorLocation();
-		FVector newLoc = loc;
-		newLoc.Y       = newLoc.Y - 25;
-		gamepiece->SetActorLocation(newLoc);
-	}
-	//east
-	if (direction == 3) 
-	{
-		FVector loc    = gamepiece->GetActorLocation();
-		FVector newLoc = loc;
-		newLoc.Y       = newLoc.Y + 25;
-		gamepiece->SetActorLocation(newLoc);
-	}
+	
 	
 	updateCamera();
 
@@ -574,13 +554,13 @@ void AGameController::DungeonTurn()
 			while (enemySlot > 25) { enemyRow += 1;  enemySlot -= 25; }
 			while (playrSlot > 25) { playerRow += 1; playrSlot -= 25; }
 
-			//enemy above player, attempt move down
+			//enemy above player, attempt move down, sets occupied bools, sets location integers
 			if (enemyRow > playerRow) { if (canMove(enemySlot2, 1) == true) { MoveFunction(1, enemyList[i]); MoveFunction(1, enemyList[i]); int z = enemySlot2; isOccupied[z] = false; int L = z - 25; enemyList[i]->SetCurrentLocationInteger(L); isOccupied[L] = true; enemySlot2 = L; } }
-			//enemy below player, attempt move up 	
+			//enemy below player, attempt move up ...	
 			if (enemyRow < playerRow) { if (canMove(enemySlot2, 0) == true) { MoveFunction(0, enemyList[i]); MoveFunction(0, enemyList[i]); int z = enemySlot2; isOccupied[z] = false; int L = z + 25; enemyList[i]->SetCurrentLocationInteger(L); isOccupied[L] = true; enemySlot2 = L; } }
-			//enemy left of player, attempt move right
+			//enemy left of player, attempt move right ...
 			if (playrSlot > enemySlot) { if (canMove(enemySlot2, 3) == true) { MoveFunction(3, enemyList[i]); MoveFunction(3, enemyList[i]); int z = enemySlot2; isOccupied[z] = false; int L = z + 1; enemyList[i]->SetCurrentLocationInteger(L); isOccupied[L] = true; enemySlot2 = L; } }
-			//enemy right of player, attempot move left 
+			//enemy right of player, attempot move left ...
 			if (playrSlot < enemySlot) { if (canMove(enemySlot2, 2) == true) { MoveFunction(2, enemyList[i]); MoveFunction(2, enemyList[i]); int z = enemySlot2; isOccupied[z] = false; int L = z - 1; enemyList[i]->SetCurrentLocationInteger(L); isOccupied[L] = true; enemySlot2 = L; } }
 		
 			

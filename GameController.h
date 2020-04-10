@@ -28,6 +28,10 @@ public:
 	void PlayerMoveSouth();
 	void PlayerMoveWest();
 	void PlayerMoveEast();
+	void PlayerMoveNorthWest();
+	void PlayerMoveNorthEast();
+	void PlayerMoveSouthWest();
+	void PlayerMoveSouthEast();
 
 	void updateCamera();
 
